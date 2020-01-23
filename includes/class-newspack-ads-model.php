@@ -59,19 +59,30 @@ class Newspack_Ads_Model {
 	 * Get a single ad unit.
 	 *
 	 * @param number $id The id of the ad unit to retrieve.
+	 * @param string $placement The name of the placement.
 	 */
-	public static function get_ad_unit( $id ) {
+	public static function get_ad_unit( $id, $placement = null ) {
 		$ad_unit = \get_post( $id );
 		if ( is_a( $ad_unit, 'WP_Post' ) ) {
-			return array(
+			$unique_id = uniqid();
+			$sizes     = self::sanitize_sizes( \get_post_meta( $ad_unit->ID, self::SIZES, true ) );
+
+			$needs_size_mappings = in_array( $placement, [ 'global_above_header', 'global_below_header', 'global_above_footer' ] );
+
+			$prepared_unit = [
 				'id'             => $ad_unit->ID,
 				'name'           => $ad_unit->post_title,
-				self::SIZES      => self::sanitize_sizes( \get_post_meta( $ad_unit->ID, self::SIZES, true ) ),
-				self::CODE       => absint( \get_post_meta( $ad_unit->ID, self::CODE, true ) ),
-				'ad_code'        => self::code_for_ad_unit( $ad_unit ),
-				'amp_ad_code'    => self::amp_code_for_ad_unit( $ad_unit ),
+				self::SIZES      => $sizes,
+				self::CODE       => \get_post_meta( $ad_unit->ID, self::CODE, true ),
+				'size_mappings'  => $needs_size_mappings ? self::size_mappings( $sizes ) : null,
 				self::AD_SERVICE => self::sanitize_ad_service( \get_post_meta( $ad_unit->ID, self::AD_SERVICE, true ) ),
-			);
+				'unique_id'      => $unique_id,
+			];
+
+			$prepared_unit['ad_code']     = self::code_for_ad_unit( $prepared_unit );
+			$prepared_unit['amp_ad_code'] = self::amp_code_for_ad_unit( $prepared_unit );
+			self::$ad_ids[ $unique_id ]   = $prepared_unit;
+			return $prepared_unit;
 		} else {
 			return new WP_Error(
 				'newspack_no_adspot_found',
@@ -320,30 +331,32 @@ class Newspack_Ads_Model {
 	 * Code for ad unit.
 	 *
 	 * @param array $ad_unit The ad unit to generate code for.
+	 * @return string Generated code.
 	 */
 	public static function code_for_ad_unit( $ad_unit ) {
-		$sizes        = $ad_unit->sizes;
-		$code         = $ad_unit->code;
+		$sizes        = $ad_unit['sizes'];
 		$network_code = self::get_network_code( 'google_ad_manager' );
-		$unique_id    = uniqid();
 
 		if ( ! is_array( $sizes ) ) {
 			$sizes = [];
 		}
 
-		self::$ad_ids[ $unique_id ] = $ad_unit;
-
 		$largest = self::largest_ad_size( $sizes );
+		$div_id  = sprintf( 'div-gpt-ad-%s-0', $ad_unit['unique_id'] );
 
-		$code = sprintf(
-			"<!-- /%s/%s --><div id='div-gpt-ad-%s-0' style='width: %spx; height: %spx;'><script>googletag.cmd.push(function() { googletag.display('div-gpt-ad-%s-0'); });</script></div>",
-			$network_code,
-			$code,
-			$unique_id,
-			$largest[0],
-			$largest[1],
-			$unique_id
-		);
+		ob_start();
+		?>
+		<!-- /<?php echo esc_attr( $network_code ); ?>/<?php echo esc_attr( $ad_unit['code'] ); ?> -->
+		<div
+			id='<?php echo esc_attr( $div_id ); ?>'
+			<?php if ( ! $ad_unit['size_mappings'] ) : ?>
+				style='width: <?php echo absint( $largest[0] ); ?>px; height: <?php echo absint( $largest[1] ); ?>px;'
+			<?php endif; ?>
+		>
+			<script>googletag.cmd.push(function() { googletag.display( '<?php echo esc_attr( $div_id ); ?>' ); });</script>
+		</div>
+		<?php
+		$code = ob_get_clean();
 		return $code;
 	}
 
@@ -353,8 +366,8 @@ class Newspack_Ads_Model {
 	 * @param array $ad_unit The ad unit to generate AMP code for.
 	 */
 	public static function amp_code_for_ad_unit( $ad_unit ) {
-		$sizes        = $ad_unit->sizes;
-		$code         = $ad_unit->code;
+		$sizes        = $ad_unit['sizes'];
+		$code         = $ad_unit['code'];
 		$network_code = self::get_network_code( 'google_ad_manager' );
 
 		if ( ! is_array( $sizes ) ) {
@@ -379,6 +392,63 @@ class Newspack_Ads_Model {
 				$other_sizes
 			);
 			$data_multi_size = sprintf( 'data-multi-size="%s"', implode( ',', $formatted_sizes ) );
+		}
+
+		if ( $ad_unit['size_mappings'] ) {
+			$mappings = $ad_unit['size_mappings'];
+			$markup   = [];
+			$styles   = [];
+			$widths   = array_map(
+				function ( $item ) {
+					return $item[0][0];
+				},
+				$mappings
+			);
+			$counter  = 0;
+			foreach ( $ad_unit['size_mappings'] as $size_mapping ) {
+				$width  = absint( $size_mapping[0][0] );
+				$height = absint( $size_mapping[0][1] );
+				if ( ! $width || ! $height ) {
+					$counter++;
+					continue;
+				}
+				$div_id = sprintf(
+					'div-gpt-amp-%s-%dx%d',
+					esc_attr( $ad_unit['code'] ),
+					$width,
+					$height
+				);
+
+				$media_query = [];
+				if ( $widths[ $counter ] > 0 ) {
+					$media_query[] = sprintf( '(min-width:%dpx)', $widths[ $counter ] );
+				}
+				if ( count( $widths ) > $counter + 1 ) {
+					$media_query[] = sprintf( '(max-width:%dpx)', $widths[ $counter + 1 ] );
+				}
+				$styles[] = sprintf(
+					'#%s{ display: none; } @media %s {#%s{ display: block; } }',
+					$div_id,
+					implode( ' and ', $media_query ),
+					$div_id
+				);
+
+				$markup[] = sprintf(
+					'<div id="%s"><amp-ad width="%dpx" height="%dpx" type="doubleclick" data-slot="/%s/%s"></amp-ad></div>',
+					$div_id,
+					$width,
+					$height,
+					$network_code,
+					$code
+				);
+				$counter++;
+			}
+			$total = sprintf(
+				'<style>%s</style>%s',
+				implode( ' ', $styles ),
+				implode( ' ', $markup )
+			);
+			return $total;
 		}
 
 		$code = sprintf(
@@ -407,6 +477,27 @@ class Newspack_Ads_Model {
 			},
 			[ 0, 0 ]
 		);
+	}
+
+	/**
+	 * Generate browser size -> ad unit size mappings
+	 *
+	 * @param array $sizes Array of available sizes.
+	 * @return array An array of size mappings.
+	 */
+	public static function size_mappings( $sizes ) {
+		$mappings = array_map(
+			function( $size ) {
+				return [
+					$size,
+					$size,
+				];
+			},
+			$sizes
+		);
+
+		$mappings[] = [ [ 0, 0 ], [] ];
+		return array_reverse( $mappings );
 	}
 }
 Newspack_Ads_Model::init();
