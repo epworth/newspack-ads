@@ -78,6 +78,9 @@ class Newspack_Ads_Blocks {
 		if ( isset( $attributes['className'] ) ) {
 			array_push( $classes, $attributes['className'] );
 		}
+		if ( isset( $attributes['isStickToTop'] ) && true === $attributes['isStickToTop'] ) {
+			array_push( $classes, 'stick-to-top' );
+		}
 		return implode( ' ', $classes );
 	}
 

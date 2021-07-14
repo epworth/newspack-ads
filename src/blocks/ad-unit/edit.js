@@ -7,6 +7,7 @@ import {
 	ExternalLink,
 	Placeholder,
 	SelectControl,
+	CheckboxControl,
 	Spinner,
 	withNotices,
 } from '@wordpress/components';
@@ -79,36 +80,51 @@ class Edit extends Component {
 		 * Constants
 		 */
 		const { attributes, setAttributes, noticeUI } = this.props;
-		const { activeAd } = attributes;
+		const { activeAd, isStickToTop } = attributes;
 		const { adUnits } = this.state;
 		const { width, height } = this.activeAdDataForActiveAd( activeAd );
-		const adWidth = width ? { width: `${ width }px` } : {};
-		const ratio = width && height ? { padding: `0 0 ${ ( height * 100 ) / width }%` } : {};
+		const displaySpinner = ! adUnits;
 		return (
 			<Fragment>
 				{ noticeUI }
 				<div className="wp-block-newspack-ads-blocks-ad-unit">
 					<div className="newspack-ads-ad-unit">
-						<Placeholder style={ adWidth }>
-							<div className="newspack-ads-ad-unit__ratio" style={ ratio } />
-							{ ! adUnits && <Spinner /> }
-							{ adUnits && !! adUnits.length && (
-								<SelectControl
-									label={ __( 'Ad Unit' ) }
-									value={ activeAd }
-									options={ this.adUnitsForSelect( adUnits ) }
-									onChange={ _activeAd => setAttributes( { activeAd: _activeAd } ) }
-								/>
-							) }
-							{ adUnits && ! adUnits.length && (
-								<div className="components-base-control">
-									<div className="components-base-control__field">
-										{ __( 'No ad units have been created yet.' ) }
-										<ExternalLink href="/wp-admin/admin.php?page=newspack-google-ad-manager-wizard#/">
-											{ __( 'You can create ad units in the Ads wizard' ) }
-										</ExternalLink>
-									</div>
-								</div>
+						<Placeholder style={ { width: `${ width }px`, height: `${ height }px` } }>
+							{ displaySpinner ? (
+								<Spinner />
+							) : (
+								<>
+									{ adUnits.length ? (
+										<>
+											<SelectControl
+												label={ __( 'Ad Unit', 'newspack-ads' ) }
+												value={ activeAd }
+												options={ this.adUnitsForSelect( adUnits ) }
+												onChange={ _activeAd => setAttributes( { activeAd: _activeAd } ) }
+											/>
+											{ /* // TODO: only if Newspack_Ads::is_amp_plus_configured() */ }
+											<CheckboxControl
+												label={ __(
+													'Stick to top (only if the last widget in the sidebar)',
+													'newspack-ads'
+												) }
+												checked={ isStickToTop }
+												onChange={ _isStickToTop =>
+													setAttributes( { isStickToTop: _isStickToTop } )
+												}
+											/>
+										</>
+									) : (
+										<div className="components-base-control">
+											<div className="components-base-control__field">
+												{ __( 'No ad units have been created yet.' ) }
+												<ExternalLink href="/wp-admin/admin.php?page=newspack-google-ad-manager-wizard#/">
+													{ __( 'You can create ad units in the Ads wizard' ) }
+												</ExternalLink>
+											</div>
+										</div>
+									) }
+								</>
 							) }
 						</Placeholder>
 					</div>

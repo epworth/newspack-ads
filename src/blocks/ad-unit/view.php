@@ -63,8 +63,11 @@ function newspack_ads_register_ad_unit() {
 		'newspack-ads/ad-unit',
 		array(
 			'attributes'      => array(
-				'activeAd' => array(
+				'activeAd'     => array(
 					'type' => 'integer',
+				),
+				'isStickToTop' => array(
+					'type' => 'boolean',
 				),
 			),
 			'render_callback' => 'newspack_ads_render_block_ad_unit',

@@ -12,17 +12,11 @@
 		max-width: calc( 100vw - 116px );
 	}
 
-	&__ratio {
-		padding: 0 0 75%;
-	}
-
 	.components-placeholder {
 		border: 1px solid $gray-900;
 		border-radius: 0;
 		box-shadow: none;
-		margin: 0;
 		min-height: 100px;
-		padding: 0;
 
 		&__label {
 			display: none;
@@ -34,27 +28,6 @@
 		margin: -9px 0 0 -9px;
 		position: absolute;
 		top: 50%;
-	}
-
-	.components-base-control {
-		bottom: 1.5384615385em;
-		display: flex;
-		left: 1.5384615385em;
-		position: absolute;
-		right: 1.5384615385em;
-		top: 1.5384615385em;
-
-		&__field {
-			display: flex;
-			flex-direction: column;
-			justify-content: center;
-			margin: 0;
-			width: 100%;
-		}
-
-		&__label {
-			font-weight: 600;
-		}
 	}
 }
 

@@ -49,6 +49,9 @@ export const settings = {
 		activeAd: {
 			type: 'string',
 		},
+		isStickToTop: {
+			type: 'boolean',
+		},
 	},
 	supports: {
 		html: false,
