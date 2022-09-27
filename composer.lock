@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "5ed3bb01ea55673ad7d4ff64fd5de9a5",
+    "content-hash": "da84d00ab9f9ddbe9d64eea86415ac0e",
     "packages": [
         {
             "name": "firebase/php-jwt",
@@ -70,16 +70,16 @@
         },
         {
             "name": "google/auth",
-            "version": "v1.22.0",
+            "version": "v1.23.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/googleapis/google-auth-library-php.git",
-                "reference": "da4037df770027c8f7163595a29ec434f705f8b1"
+                "reference": "8da16102d2cd1bdc128d97f323553df465ee7701"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/googleapis/google-auth-library-php/zipball/da4037df770027c8f7163595a29ec434f705f8b1",
-                "reference": "da4037df770027c8f7163595a29ec434f705f8b1",
+                "url": "https://api.github.com/repos/googleapis/google-auth-library-php/zipball/8da16102d2cd1bdc128d97f323553df465ee7701",
+                "reference": "8da16102d2cd1bdc128d97f323553df465ee7701",
                 "shasum": ""
             },
             "require": {
@@ -122,22 +122,22 @@
             "support": {
                 "docs": "https://googleapis.github.io/google-auth-library-php/main/",
                 "issues": "https://github.com/googleapis/google-auth-library-php/issues",
-                "source": "https://github.com/googleapis/google-auth-library-php/tree/v1.22.0"
+                "source": "https://github.com/googleapis/google-auth-library-php/tree/v1.23.0"
             },
-            "time": "2022-09-01T17:07:07+00:00"
+            "time": "2022-09-27T16:27:23+00:00"
         },
         {
             "name": "googleads/googleads-php-lib",
-            "version": "57.0.0",
+            "version": "58.0.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/googleads/googleads-php-lib.git",
-                "reference": "49d897dd63957c93c53673fc4b8f4823e76908ac"
+                "reference": "265fbc46cf7349716d8018d7ae76dc2384f59be3"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/googleads/googleads-php-lib/zipball/49d897dd63957c93c53673fc4b8f4823e76908ac",
-                "reference": "49d897dd63957c93c53673fc4b8f4823e76908ac",
+                "url": "https://api.github.com/repos/googleads/googleads-php-lib/zipball/265fbc46cf7349716d8018d7ae76dc2384f59be3",
+                "reference": "265fbc46cf7349716d8018d7ae76dc2384f59be3",
                 "shasum": ""
             },
             "require": {
@@ -177,9 +177,9 @@
             "homepage": "https://github.com/googleads/googleads-php-lib",
             "support": {
                 "issues": "https://github.com/googleads/googleads-php-lib/issues",
-                "source": "https://github.com/googleads/googleads-php-lib/tree/57.0.0"
+                "source": "https://github.com/googleads/googleads-php-lib/tree/58.0.0"
             },
-            "time": "2022-05-18T14:21:47+00:00"
+            "time": "2022-08-16T16:49:11+00:00"
         },
         {
             "name": "guzzlehttp/guzzle",
